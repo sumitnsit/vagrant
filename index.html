@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Vagrant by sumitnsit</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Vagrant</h1>
+      <h2 class="project-tagline"></h2>
+      <a href="https://github.com/sumitnsit/vagrant" class="btn">View on GitHub</a>
+      <a href="https://github.com/sumitnsit/vagrant/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/sumitnsit/vagrant/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h1>
+<a id="using-vagrant" class="anchor" href="#using-vagrant" aria-hidden="true"><span class="octicon octicon-link"></span></a>Using Vagrant</h1>
+
+<h3>
+<a id="choose-a-box" class="anchor" href="#choose-a-box" aria-hidden="true"><span class="octicon octicon-link"></span></a>Choose a Box</h3>
+
+<p>The first thing you’ll need to do is pick a box that you want to build from. The <code>Vagrant Cloud</code> lets you easily find boxes that people have shared.</p>
+
+<h3>
+<a id="initialize-and-start-the-vagrant-box" class="anchor" href="#initialize-and-start-the-vagrant-box" aria-hidden="true"><span class="octicon octicon-link"></span></a>Initialize and Start the Vagrant Box</h3>
+
+<p>After you’ve chosen a box, initialize the Vagrant box.</p>
+
+<div class="highlight highlight-shell"><pre>vagrant init hashicorp/precise64</pre></div>
+
+<p>Create a new folder and cd into that. The following command will create a Vagrant file for you. </p>
+
+<div class="highlight highlight-shell"><pre>vagrant up</pre></div>
+
+<h3>
+<a id="ssh-into-the-box-and-customize-it" class="anchor" href="#ssh-into-the-box-and-customize-it" aria-hidden="true"><span class="octicon octicon-link"></span></a>SSH into the Box and Customize It</h3>
+
+<p>We’ll now SSH into the box and start customizing it.</p>
+
+<div class="highlight highlight-shell"><pre>vagrant ssh</pre></div>
+
+<p>Now, we need to setup our server by installing whatever we want on it.</p>
+
+<div class="highlight highlight-shell"><pre>sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get install vim
+sudo apt-get install apache2
+sudo service apache2 restart</pre></div>
+
+<h3>
+<a id="make-the-box-as-small-as-possible" class="anchor" href="#make-the-box-as-small-as-possible" aria-hidden="true"><span class="octicon octicon-link"></span></a>Make the Box as Small as possible</h3>
+
+<p>We’re now going to clean up disk space on the VM so when we package it into a new Vagrant box, it’s as clean as possible. First, remove APT cache</p>
+
+<div class="highlight highlight-shell"><pre>sudo apt-get clean</pre></div>
+
+<p>Then, “zero out” the drive (this is for Ubuntu):</p>
+
+<div class="highlight highlight-shell"><pre>sudo dd <span class="pl-k">if</span>=/dev/zero of=/EMPTY bs=1M
+sudo rm -f /EMPTY</pre></div>
+
+<p>Lastly, let’s clear the Bash History and exit the VM:</p>
+
+<div class="highlight highlight-shell"><pre>cat /dev/null <span class="pl-k">&gt;</span> <span class="pl-k">~</span>/.bash_history <span class="pl-k">&amp;&amp;</span> <span class="pl-c1">history</span> -c <span class="pl-k">&amp;&amp;</span> <span class="pl-c1">exit</span></pre></div>
+
+<h3>
+<a id="repackage-the-vm-into-a-new-vagrant-box" class="anchor" href="#repackage-the-vm-into-a-new-vagrant-box" aria-hidden="true"><span class="octicon octicon-link"></span></a>Repackage the VM into a New Vagrant Box</h3>
+
+<p>We’re now going to repackage the server we just created into a new Vagrant Base Box. It’s very easy with Vagrant:</p>
+
+<div class="highlight highlight-shell"><pre>vagrant package --output mynew.box</pre></div>
+
+<h3>
+<a id="add-the-box-into-your-vagrant-install" class="anchor" href="#add-the-box-into-your-vagrant-install" aria-hidden="true"><span class="octicon octicon-link"></span></a>Add the Box into Your Vagrant Install</h3>
+
+<p>The previous command creates a “mynew.box” file. You can technically put this wherever you want on your computer. Now, let’s add this new Vagrant Box into Vagrant:</p>
+
+<div class="highlight highlight-shell"><pre>vagrant box add mynewbox mynew.box</pre></div>
+
+<p>This now will add the box into your Vagrant install allowing to initiate this from any folder, but before we do this, let’s delete and remove the Vagrant file we built this box from.</p>
+
+<div class="highlight highlight-shell"><pre>vagrant destroy
+rm Vagrantfile</pre></div>
+
+<h3>
+<a id="initialize-your-new-vagrant-box" class="anchor" href="#initialize-your-new-vagrant-box" aria-hidden="true"><span class="octicon octicon-link"></span></a>Initialize Your New Vagrant Box</h3>
+
+<p>We need to now initialize a Vagrant environment from our brand new box using the same command from earlier but referencing the new Box.</p>
+
+<div class="highlight highlight-shell"><pre>vagrant init mynewbox</pre></div>
+
+<h2>
+<a id="customize-your-new-vagrantfile" class="anchor" href="#customize-your-new-vagrantfile" aria-hidden="true"><span class="octicon octicon-link"></span></a>Customize Your New Vagrantfile</h2>
+
+<p>When you initialize the Vagrant environment, it creates a Vagrantfile for you. Open the Vagrantfile and delete everything. Now paste the following bare-bones code into your Vagrantfile:</p>
+
+<div class="highlight highlight-ruby"><pre><span class="pl-c"># -*- mode: ruby -*-</span>
+<span class="pl-c"># vi: set ft=ruby :</span>
+
+<span class="pl-c1">Vagrant</span>.configure(<span class="pl-s"><span class="pl-pds">"</span>2<span class="pl-pds">"</span></span>) <span class="pl-k">do </span>|<span class="pl-smi">config</span>|
+
+  config.vm.box <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>mynewbox<span class="pl-pds">"</span></span>
+  config.vm.network <span class="pl-s"><span class="pl-pds">"</span>private_network<span class="pl-pds">"</span></span>, <span class="pl-c1">ip:</span> <span class="pl-s"><span class="pl-pds">"</span>192.168.33.10<span class="pl-pds">"</span></span>
+  config.vm.hostname <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>mynewbox<span class="pl-pds">"</span></span>
+  config.vm.synced_folder <span class="pl-s"><span class="pl-pds">"</span>.<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>/var/www<span class="pl-pds">"</span></span>, <span class="pl-c1">:mount_options</span> =&gt; [<span class="pl-s"><span class="pl-pds">"</span>dmode=777<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>fmode=666<span class="pl-pds">"</span></span>]
+
+<span class="pl-k">end</span></pre></div>
+
+<h2>
+<a id="shell-provisioner" class="anchor" href="#shell-provisioner" aria-hidden="true"><span class="octicon octicon-link"></span></a>SHELL PROVISIONER</h2>
+
+<p>The shell provisioner allows you to upload and execute a script within the guest machine. The shell provisioner takes various options.
+<code>inline (string)</code> - Specifies a shell command inline to execute on the remote machine. See the inline scripts section below for more information.
+<code>path (string)</code> - Path to a shell script to upload and execute. It can be a script relative to the project Vagrantfile or a remote script (like a gist).</p>
+
+<h3>
+<a id="inline-scripts" class="anchor" href="#inline-scripts" aria-hidden="true"><span class="octicon octicon-link"></span></a>INLINE SCRIPTS</h3>
+
+<p>Perhaps the easiest way to get started is with an inline script. An inline script is a script that is given to Vagrant directly within the Vagrantfile. An example is best:</p>
+
+<div class="highlight highlight-ruby"><pre><span class="pl-c1">Vagrant</span>.configure(<span class="pl-s"><span class="pl-pds">"</span>2<span class="pl-pds">"</span></span>) <span class="pl-k">do </span>|<span class="pl-smi">config</span>|
+  config.vm.provision <span class="pl-s"><span class="pl-pds">"</span>shell<span class="pl-pds">"</span></span>,
+    <span class="pl-c1">inline:</span> <span class="pl-s"><span class="pl-pds">"</span>echo Hello, World<span class="pl-pds">"</span></span>
+<span class="pl-k">end</span></pre></div>
+
+<p>This causes echo <code>Hello, World</code> to be run within the guest machine when provisioners are run.</p>
+
+<p>Combined with a little bit more Ruby, this makes it very easy to embed your shell scripts directly within your Vagrantfile. Another example below:</p>
+
+<div class="highlight highlight-ruby"><pre><span class="pl-smi">$script</span> <span class="pl-s"><span class="pl-pds">= &lt;&lt;SCRIPT</span></span>
+<span class="pl-s">echo I am provisioning...</span>
+<span class="pl-s">date &gt; /etc/vagrant_provisioned_at</span>
+<span class="pl-s"><span class="pl-pds">SCRIPT</span></span>
+
+<span class="pl-c1">Vagrant</span>.configure(<span class="pl-s"><span class="pl-pds">"</span>2<span class="pl-pds">"</span></span>) <span class="pl-k">do </span>|<span class="pl-smi">config</span>|
+  config.vm.provision <span class="pl-s"><span class="pl-pds">"</span>shell<span class="pl-pds">"</span></span>, <span class="pl-c1">inline:</span> <span class="pl-smi">$script</span>
+<span class="pl-k">end</span></pre></div>
+
+<p>The script is assigned to a global variable <code>$script</code>. This global variable contains a string which is then passed in as the inline script to the Vagrant configuration.</p>
+
+<h3>
+<a id="external-script" class="anchor" href="#external-script" aria-hidden="true"><span class="octicon octicon-link"></span></a>EXTERNAL SCRIPT</h3>
+
+<p>The shell provisioner can also take an option specifying a path to a shell script on the host machine. Vagrant will then upload this script into the guest and execute it. An example:</p>
+
+<div class="highlight highlight-ruby"><pre><span class="pl-c1">Vagrant</span>.configure(<span class="pl-s"><span class="pl-pds">"</span>2<span class="pl-pds">"</span></span>) <span class="pl-k">do </span>|<span class="pl-smi">config</span>|
+  config.vm.provision <span class="pl-s"><span class="pl-pds">"</span>shell<span class="pl-pds">"</span></span>, <span class="pl-c1">path:</span> <span class="pl-s"><span class="pl-pds">"</span>script.sh<span class="pl-pds">"</span></span>
+<span class="pl-k">end</span></pre></div>
+
+<p>Relative paths, such as above, are expanded relative to the location of the root Vagrantfile for your project. Absolute paths can also be used, as well as shortcuts such as ~ (home directory) and .. (parent directory).</p>
+
+<p>If you use a remote script as part of your provisioning process, you can pass in its URL as the path argument as well:</p>
+
+<div class="highlight highlight-ruby"><pre><span class="pl-c1">Vagrant</span>.configure(<span class="pl-s"><span class="pl-pds">"</span>2<span class="pl-pds">"</span></span>) <span class="pl-k">do </span>|<span class="pl-smi">config</span>|
+  config.vm.provision <span class="pl-s"><span class="pl-pds">"</span>shell<span class="pl-pds">"</span></span>, <span class="pl-c1">path:</span> <span class="pl-s"><span class="pl-pds">"</span>https://example.com/provisioner.sh<span class="pl-pds">"</span></span>
+<span class="pl-k">end</span></pre></div>
+
+<h3>
+<a id="script-arguments" class="anchor" href="#script-arguments" aria-hidden="true"><span class="octicon octicon-link"></span></a>SCRIPT ARGUMENTS</h3>
+
+<p>You can parameterize your scripts as well like any normal shell script. These arguments can be specified to the shell provisioner. They should be specified as a string as they'd be typed on the command line, so be sure to properly escape anything:</p>
+
+<div class="highlight highlight-ruby"><pre><span class="pl-c1">Vagrant</span>.configure(<span class="pl-s"><span class="pl-pds">"</span>2<span class="pl-pds">"</span></span>) <span class="pl-k">do </span>|<span class="pl-smi">config</span>|
+  config.vm.provision <span class="pl-s"><span class="pl-pds">"</span>shell<span class="pl-pds">"</span></span> <span class="pl-k">do </span>|<span class="pl-smi">s</span>|
+    s.inline <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>echo $1<span class="pl-pds">"</span></span>
+    s.args   <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>'hello, world!'<span class="pl-pds">"</span></span>
+  <span class="pl-k">end</span>
+<span class="pl-k">end</span></pre></div>
+
+<p>You can also specify arguments an array if you don't want to worry about quoting:</p>
+
+<div class="highlight highlight-ruby"><pre><span class="pl-c1">Vagrant</span>.configure(<span class="pl-s"><span class="pl-pds">"</span>2<span class="pl-pds">"</span></span>) <span class="pl-k">do </span>|<span class="pl-smi">config</span>|
+  config.vm.provision <span class="pl-s"><span class="pl-pds">"</span>shell<span class="pl-pds">"</span></span> <span class="pl-k">do </span>|<span class="pl-smi">s</span>|
+    s.inline <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>echo $1<span class="pl-pds">"</span></span>
+    s.args   <span class="pl-k">=</span> [<span class="pl-s"><span class="pl-pds">"</span>hello, world!<span class="pl-pds">"</span></span>]
+  <span class="pl-k">end</span>
+<span class="pl-k">end</span></pre></div>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/sumitnsit/vagrant">Vagrant</a> is maintained by <a href="https://github.com/sumitnsit">sumitnsit</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+            <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-66492686-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
